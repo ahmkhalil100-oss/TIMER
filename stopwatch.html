@@ -1,0 +1,243 @@
+<!DOCTYPE html>
+<html lang="ar">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>عداد</title>
+
+<style>
+html,body{
+ margin:0;
+ height:100%;
+ background:black;
+ color:white;
+ font-family:Arial;
+ overflow:hidden;
+}
+
+/* التايمر */
+#time{
+ position:fixed;
+ top:50%;
+ left:50%;
+ transform:translate(-50%,-50%);
+ text-align:center;
+ white-space:nowrap;
+}
+
+/* الرسالة */
+#message{
+ position:fixed;
+ top:12%;
+ left:50%;
+ transform:translateX(-50%);
+ font-size:5vw;
+ display:none;
+ z-index:9999;
+ text-align:center;
+ width:90%;
+}
+
+/* الأزرار */
+#controls{
+ position:fixed;
+ bottom:10px;
+ left:50%;
+ transform:translateX(-50%);
+ display:flex;
+ gap:10px;
+ opacity:.2;
+}
+.btn{
+ font-size:5vw;
+ border:none;
+ border-radius:50%;
+ padding:8px;
+ background:rgba(255,255,255,0.1);
+}
+
+/* قائمة التلاعب */
+#panel{
+ position:fixed;
+ top:10%;
+ left:50%;
+ transform:translateX(-50%);
+ width:85%;
+ background:#111;
+ padding:15px;
+ border-radius:15px;
+ display:none;
+ z-index:99999;
+ text-align:center;
+}
+
+input{
+ width:90%;
+ font-size:5vw;
+ margin:8px 0;
+ text-align:center;
+}
+</style>
+</head>
+
+<body>
+
+<div id="time">00:00:00</div>
+<div id="message"></div>
+
+<div id="controls">
+<button class="btn" id="pause">⏸️</button>
+<button class="btn" onclick="restart()">🔄</button>
+</div>
+
+<div id="panel">
+<h3>⚙️ التلاعب</h3>
+<input id="pass" placeholder="الباسورد">
+<input id="newTime" placeholder="00:00:00">
+<button onclick="applyEdit()">تم</button>
+</div>
+
+<audio id="voice" src="ash.mp3"></audio>
+
+<script>
+let sec=0, paused=false;
+let firstDone=false;
+const PASS="013";
+
+const time=document.getElementById("time");
+const msg=document.getElementById("message");
+const voice=document.getElementById("voice");
+const controls=document.getElementById("controls");
+
+/* فورمات */
+function format(s){
+ let h=Math.floor(s/3600);
+ let m=Math.floor((s%3600)/60);
+ let ss=s%60;
+ return String(h).padStart(2,"0")+":"+
+        String(m).padStart(2,"0")+":"+
+        String(ss).padStart(2,"0");
+}
+
+/* 🔥 ضبط الحجم تلقائي */
+function fitTime(){
+  const el = time;
+  const w = window.innerWidth;
+  const h = window.innerHeight;
+
+  let size = Math.min(w, h);
+  el.style.fontSize = size + "px";
+
+  while (
+    (el.scrollWidth > w * 0.95 || el.scrollHeight > h * 0.5)
+    && size > 20
+  ){
+    size -= 2;
+    el.style.fontSize = size + "px";
+  }
+}
+
+/* أول تشغيل */
+fitTime();
+window.addEventListener("resize", fitTime);
+
+/* تفعيل الصوت */
+document.body.addEventListener("click",()=>{
+ voice.muted=true;
+ voice.play().then(()=>{
+  voice.pause();
+  voice.currentTime=0;
+  voice.muted=false;
+ }).catch(()=>{});
+},{once:true});
+
+/* إظهار/إخفاء + Fullscreen */
+document.body.addEventListener("click", function(e){
+ if(e.target.closest("#panel") || e.target.closest(".btn")) return;
+
+ controls.style.display = (controls.style.display==="none")?"flex":"none";
+
+ if(!document.fullscreenElement){
+  document.documentElement.requestFullscreen().catch(()=>{});
+ }
+});
+
+/* العداد */
+setInterval(()=>{
+ if(paused)return;
+
+ sec++;
+ time.textContent=format(sec);
+ fitTime();
+
+ if(!firstDone && sec===5){
+  showMsg();
+  firstDone=true;
+ }
+
+ if(sec>5 && (sec-5)%595===0){
+  showMsg();
+ }
+
+},1000);
+
+/* رسالة + صوت */
+function showMsg(){
+ msg.style.display="block";
+ msg.innerHTML="🫡 عاش يا بطل";
+
+ voice.currentTime=0;
+ voice.play().catch(()=>{});
+
+ setTimeout(()=>msg.style.display="none",3000);
+}
+
+/* إيقاف */
+pause.onclick=()=>{
+ paused=!paused;
+ pause.textContent=paused?"▶️":"⏸️";
+};
+
+/* ريستارت */
+function restart(){
+ sec=0;
+ firstDone=false;
+}
+
+/* ضغط مطول */
+let hold;
+pause.addEventListener("touchstart",()=>{
+ hold=setTimeout(()=>{
+  panel.style.display="block";
+ },1000);
+});
+pause.addEventListener("touchend",()=>clearTimeout(hold));
+
+/* تعديل */
+function applyEdit(){
+ let p=document.getElementById("pass").value;
+
+ if(p!==PASS){
+  msg.style.display="block";
+  msg.innerHTML="❌ غلط";
+  setTimeout(()=>msg.style.display="none",2000);
+  return;
+ }
+
+ let v=document.getElementById("newTime").value.split(":");
+ if(v.length===3){
+  sec=(+v[0])*3600+(+v[1])*60+(+v[2]);
+  time.textContent=format(sec);
+  fitTime();
+
+  msg.style.display="block";
+  msg.innerHTML="✅ تم";
+  setTimeout(()=>msg.style.display="none",2000);
+ }
+
+ panel.style.display="none";
+}
+</script>
+
+</body>
+</html>
