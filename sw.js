@@ -1,17 +1,32 @@
-const CACHE_NAME = "timer-v1";
+const CACHE_NAME = "timer-v2";
 
 const FILES = [
   "./",
   "./index.html",
   "./manifest.json",
   "./Quran.mp3",
-  "./icon.png.jpg"
+  "./icon.png.jpg",
+  "./icon-512.png"
 ];
 
 self.addEventListener("install", event => {
   event.waitUntil(
     caches.open(CACHE_NAME).then(cache => cache.addAll(FILES))
   );
+  self.skipWaiting();
+});
+
+self.addEventListener("activate", event => {
+  event.waitUntil(
+    caches.keys().then(keys =>
+      Promise.all(
+        keys
+          .filter(key => key !== CACHE_NAME)
+          .map(key => caches.delete(key))
+      )
+    )
+  );
+  self.clients.claim();
 });
 
 self.addEventListener("fetch", event => {
