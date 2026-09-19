@@ -224,5 +224,9 @@ function applyEdit(){
   
  panel.style.display="none";  
 }  
-</script>  </body>  
+</script> <script>
+if ("serviceWorker" in navigator) {
+  navigator.serviceWorker.register("./sw.js");
+}
+</script> </body>  
 </html>
