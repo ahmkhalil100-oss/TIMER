@@ -1,232 +1,978 @@
-<!DOCTYPE html>  <html lang="ar">  
-<head>  
- <link rel="manifest" href="manifest.json">  
-<meta charset="UTF-8">  
-<meta name="viewport" content="width=device-width, initial-scale=1.0">  
-<title>عداد</title>  <style>  
-html,body{  
- margin:0;  
- height:100%;  
- background:black;  
- color:white;  
- font-family:Arial;  
- overflow:hidden;  
-}  
-  
-/* التايمر */  
-#time{  
- position:fixed;  
- top:50%;  
- left:50%;  
- transform:translate(-50%,-50%);  
- text-align:center;  
- white-space:nowrap;  
-}  
-  
-/* الرسالة */  
-#message{  
- position:fixed;  
- top:12%;  
- left:50%;  
- transform:translateX(-50%);  
- font-size:4.5vw;  
- display:none;  
- z-index:9999;  
- text-align:center;  
- width:90%;  
-}  
-  
-/* الأزرار */  
-#controls{  
- position:fixed;  
- bottom:10px;  
- left:1560%;  
- transform:translateX(-50%);  
- display:flex;  
- gap:10px;  
- opacity:.2;  
-}  
-.btn{  
- font-size:5vw;  
- border:none;  
- border-radius:50%;  
- padding:8px;  
- background:rgba(255,255,255,0.1);  
-}  
-  
-/* قائمة التلاعب */  
-#panel{  
- position:fixed;  
- top:10%;  
- left:50%;  
- transform:translateX(-50%);  
- width:85%;  
- background:#111;  
- padding:15px;  
- border-radius:15px;  
- display:none;  
- z-index:99999;  
- text-align:center;  
-}  
-  
-input{  
- width:90%;  
- font-size:5vw;  
- margin:8px 0;  
- text-align:center;  
-}  
-</style>  </head>  <body>  <div id="time">00:00:00</div>  
-<div id="message"></div>  <div id="controls">  
-<button class="btn" id="pause">⏸️</button>  
-<button class="btn" onclick="restart()">🔄</button>  
-</div>  <div id="panel">  
-<h3>⚙️ التلاعب</h3>  
-<input id="pass" placeholder="الباسورد">  
-<input id="newTime" placeholder="00:00:00">  
-<button onclick="applyEdit()">تم</button>  
-</div>  <audio id="voice" src="Quran.mp3"></audio>
+<!DOCTYPE html>
+<html lang="ar">
+<head>
 
-<script>  
-let sec=0, paused=false;  
-let firstDone=false;  
-const PASS="135790";  
-  
-const time=document.getElementById("time");  
-const msg=document.getElementById("message");  
-const voice=document.getElementById("voice");  
-const controls=document.getElementById("controls");  
-  
-/* فورمات */  
-function format(s){  
- let h=Math.floor(s/3600);  
- let m=Math.floor((s%3600)/60);  
- let ss=s%60;  
- return String(h).padStart(2,"0")+":"+  
-        String(m).padStart(2,"0")+":"+  
-        String(ss).padStart(2,"0");  
-}  
-  
-/* 🔥 ضبط الحجم تلقائي */  
-function fitTime(){  
-  const el = time;  
-  const w = window.innerWidth;  
-  const h = window.innerHeight;  
-  
-  let size = Math.min(w, h);  
-  el.style.fontSize = size + "px";  
-  
-  while (  
-    (el.scrollWidth > w * 0.95 || el.scrollHeight > h * 0.5)  
-    && size > 20  
-  ){  
-    size -= 2;  
-    el.style.fontSize = size + "px";  
-  }  
-}  
-  
-/* أول تشغيل */  
-fitTime();  
-window.addEventListener("resize", fitTime);  
-  
-/* تفعيل الصوت */  
-document.body.addEventListener("click",()=>{  
- voice.muted=true;  
- voice.play().then(()=>{  
-  voice.pause();  
-  voice.currentTime=0;  
-  voice.muted=false;  
- }).catch(()=>{});  
-},{once:true});  
-  
-/* إظهار/إخفاء + Fullscreen */  
-document.body.addEventListener("click", function(e){  
- if(e.target.closest("#panel") || e.target.closest(".btn")) return;  
-  
- controls.style.display = (controls.style.display==="none")?"flex":"none";  
-  
- if(!document.fullscreenElement){  
-  document.documentElement.requestFullscreen().catch(()=>{});  
- }  
-});  
-  
-/* العداد */  
-setInterval(()=>{  
- if(paused)return;  
-  
- sec++;  
- time.textContent=format(sec);  
- fitTime();  
-  
- if(!firstDone && sec===5){  
-  showMsg();  
-  firstDone=true;  
- }  
-  
- if(sec>5 && (sec-5)%595===0){  
-  showMsg();  
- }  
-  
-},1000);  
-  
-/* رسالة + صوت */  
-function showMsg(){  
- msg.style.display="block";  
- msg.innerHTML="🤲🏽🥹 وبشر الصابرين";  
-  
- voice.currentTime=0;  
- voice.play().catch(()=>{});  
-  
- setTimeout(()=>msg.style.display="none",3000);  
-}  
-  
-/* إيقاف */  
-pause.onclick=()=>{  
- paused=!paused;  
- pause.textContent=paused?"كسمك":"⏸️";  
-};  
-  
-/* ريستارت */  
-function restart(){  
- sec=0;  
- firstDone=false;  
-}  
-  
-/* ضغط مطول */  
-let hold;  
-pause.addEventListener("touchstart",()=>{  
- hold=setTimeout(()=>{  
-  panel.style.display="block";  
- },1000);  
-});  
-pause.addEventListener("touchend",()=>clearTimeout(hold));  
-  
-/* تعديل */  
-function applyEdit(){  
- let p=document.getElementById("pass").value;  
-  
- if(p!==PASS){  
-  msg.style.display="block";  
-  msg.innerHTML="❌ الباس غلط يحب";  
-  setTimeout(()=>msg.style.display="none",2000);  
-  return;  
- }  
-  
- let v=document.getElementById("newTime").value.split(":");  
- if(v.length===3){  
-  sec=(+v[0])*3600+(+v[1])*60+(+v[2]);  
-  time.textContent=format(sec);  
-  fitTime();  
-  
-  msg.style.display="block";  
-  msg.innerHTML="✅ تم";  
-  setTimeout(()=>msg.style.display="none",2000);  
- }  
-  
- panel.style.display="none";  
-}  
-</script> <script>
-if ("serviceWorker" in navigator) {
-  navigator.serviceWorker.register("./sw.js");
+<link rel="manifest" href="manifest.json">
+
+<meta charset="UTF-8">
+
+<meta name="viewport"
+      content="width=device-width, initial-scale=1.0">
+
+<title>عداد</title>
+
+<style>
+
+html,body{
+ margin:0;
+ height:100%;
+ background:black;
+ color:white;
+ font-family:Arial;
+ overflow:hidden;
+ touch-action:none;
 }
-</script> </body>  
+
+#time{
+ position:fixed;
+ top:50%;
+ left:50%;
+ transform:translate(-50%,-50%);
+ text-align:center;
+ white-space:nowrap;
+}
+
+#message{
+ position:fixed;
+ top:12%;
+ left:50%;
+ transform:translateX(-50%);
+ font-size:4.5vw;
+ display:none;
+ z-index:200000;
+ text-align:center;
+ width:90%;
+}
+
+#controls{
+ position:fixed;
+ bottom:10px;
+ left:50%;
+ transform:translateX(-50%);
+ display:flex;
+ gap:10px;
+ opacity:.2;
+}
+
+.btn{
+ font-size:5vw;
+ border:none;
+ border-radius:50%;
+ padding:8px;
+ background:rgba(255,255,255,0.1);
+}
+
+.panel{
+ position:fixed;
+ top:10%;
+ left:50%;
+ transform:translateX(-50%);
+ width:85%;
+ background:#111;
+ padding:15px;
+ border-radius:15px;
+ display:none;
+ z-index:99999;
+ text-align:center;
+}
+
+input{
+ width:90%;
+ font-size:5vw;
+ margin:8px 0;
+ text-align:center;
+}
+
+#keyTime{
+ font-size:8vw;
+ margin:10px auto;
+ letter-spacing:3px;
+ background:#222;
+ border-radius:12px;
+ padding:8px 0;
+ width:90%;
+}
+
+.keypad{
+ width:90%;
+ margin:auto;
+ display:grid;
+ grid-template-columns:repeat(3,1fr);
+ gap:8px;
+}
+
+.key{
+ font-size:6vw;
+ color:white;
+ background:#222;
+ border:none;
+ border-radius:12px;
+ padding:10px 0;
+}
+
+.key:active{
+ background:#444;
+}
+
+.key.special{
+ font-size:5vw;
+}
+
+#passwordScreen{
+ z-index:100000;
+}
+
+#passwordScreen input{
+ background:#222;
+ color:white;
+ border:1px solid #444;
+ border-radius:10px;
+ padding:8px 0;
+}
+
+.panel button{
+ font-size:5vw;
+ padding:8px 15px;
+ border:0;
+ border-radius:10px;
+}
+
+.settingsActions{
+ display:flex;
+ justify-content:center;
+ align-items:center;
+ gap:10px;
+ margin-top:10px;
+}
+
+.settingsActions button{
+ margin:0;
+}
+
+#exitSettings{
+ background:#333;
+ color:white;
+}
+
+#lockSettings{
+ margin-top:12px;
+ background:#222;
+ color:white;
+}
+
+</style>
+
+</head>
+
+<body>
+
+<div id="time">00:00:00</div>
+
+<div id="message"></div>
+
+
+<!-- أزرار العداد -->
+
+<div id="controls">
+
+<button class="btn" id="pause">⏸️</button>
+
+<button class="btn"
+        onclick="restart()">🔄</button>
+
+<button class="btn"
+        id="eye">👁️</button>
+
+</div>
+
+
+<!-- شاشة الباسورد -->
+
+<div id="passwordScreen"
+     class="panel">
+
+<h3>🔐 دخول</h3>
+
+<input
+ id="loginPass"
+ type="password"
+ inputmode="numeric"
+ placeholder="الباسورد">
+
+<br>
+
+<button onclick="checkPassword()">
+دخول
+</button>
+
+</div>
+
+
+<!-- شاشة التلاعب -->
+
+<div id="panel"
+     class="panel">
+
+<h3>⚙️ التلاعب</h3>
+
+<div id="keyTime">
+00:00:00
+</div>
+
+
+<div class="keypad">
+
+<button class="key"
+ onclick="keyPress('1')">1</button>
+
+<button class="key"
+ onclick="keyPress('2')">2</button>
+
+<button class="key"
+ onclick="keyPress('3')">3</button>
+
+<button class="key"
+ onclick="keyPress('4')">4</button>
+
+<button class="key"
+ onclick="keyPress('5')">5</button>
+
+<button class="key"
+ onclick="keyPress('6')">6</button>
+
+<button class="key"
+ onclick="keyPress('7')">7</button>
+
+<button class="key"
+ onclick="keyPress('8')">8</button>
+
+<button class="key"
+ onclick="keyPress('9')">9</button>
+
+<button class="key special"
+ onclick="deleteKey()">⌫</button>
+
+<button class="key"
+ onclick="keyPress('0')">0</button>
+
+<button class="key special"
+ onclick="clearKeys()">مسح</button>
+
+</div>
+
+
+<div class="settingsActions">
+
+<button onclick="applyEdit()">
+تم
+</button>
+
+<button id="exitSettings"
+        onclick="exitSettings()">
+خروج
+</button>
+
+</div>
+
+
+<button id="lockSettings"
+        onclick="lockSettings()">
+
+🔒 قفل التلاعب
+
+</button>
+
+</div>
+
+
+<audio id="voice"
+       src="Quran.mp3"></audio>
+
+
+<script>
+
+/* =========================
+   المتغيرات
+========================= */
+
+let sec=0;
+let paused=false;
+let firstDone=false;
+let hiddenTime=false;
+
+const PASS="135790";
+
+const time=document.getElementById("time");
+const msg=document.getElementById("message");
+const voice=document.getElementById("voice");
+const controls=document.getElementById("controls");
+const eye=document.getElementById("eye");
+const pause=document.getElementById("pause");
+
+const panel=document.getElementById("panel");
+const passwordScreen=
+ document.getElementById("passwordScreen");
+
+const loginPass=
+ document.getElementById("loginPass");
+
+const keyTime=
+ document.getElementById("keyTime");
+
+let enteredTime="";
+
+
+/* =========================
+   منع إطفاء الشاشة
+========================= */
+
+let wakeLock=null;
+
+async function keepScreenOn(){
+
+ try{
+
+  if("wakeLock" in navigator){
+
+   wakeLock=
+    await navigator.wakeLock.request("screen");
+
+  }
+
+ }catch(e){}
+
+}
+
+keepScreenOn();
+
+document.addEventListener(
+ "visibilitychange",
+ ()=>{
+
+  if(document.visibilityState==="visible"){
+
+   keepScreenOn();
+
+  }
+
+ }
+);
+
+
+/* =========================
+   Fullscreen
+========================= */
+
+function enterFullscreen(){
+
+ if(!document.fullscreenElement){
+
+  document.documentElement
+   .requestFullscreen()
+   .catch(()=>{});
+
+ }
+
+}
+
+
+/* =========================
+   تنسيق الوقت
+========================= */
+
+function format(s){
+
+ let h=Math.floor(s/3600);
+
+ let m=Math.floor((s%3600)/60);
+
+ let ss=s%60;
+
+ return String(h).padStart(2,"0")
+  +":"
+  +String(m).padStart(2,"0")
+  +":"
+  +String(ss).padStart(2,"0");
+
+}
+
+
+/* =========================
+   ضبط حجم الرقم
+========================= */
+
+function fitTime(){
+
+ const w=window.innerWidth;
+ const h=window.innerHeight;
+
+ let size=Math.min(w,h);
+
+ time.style.fontSize=size+"px";
+
+ while(
+  (
+   time.scrollWidth>w*0.95 ||
+   time.scrollHeight>h*0.5
+  )
+  &&
+  size>20
+ ){
+
+  size-=2;
+
+  time.style.fontSize=size+"px";
+
+ }
+
+}
+
+fitTime();
+
+window.addEventListener(
+ "resize",
+ fitTime
+);
+
+
+/* =========================
+   تحديث الوقت
+========================= */
+
+function updateTimeDisplay(){
+
+ if(hiddenTime){
+
+  time.textContent="??:??:??";
+
+ }else{
+
+  time.textContent=format(sec);
+
+ }
+
+}
+
+
+/* =========================
+   العين
+========================= */
+
+eye.onclick=function(e){
+
+ e.stopPropagation();
+
+ hiddenTime=!hiddenTime;
+
+ eye.textContent=
+  hiddenTime
+  ? "👁️‍🗨️"
+  : "👁️";
+
+ updateTimeDisplay();
+
+ fitTime();
+
+ enterFullscreen();
+
+};
+
+
+/* =========================
+   تشغيل الصوت
+========================= */
+
+document.body.addEventListener(
+ "click",
+ ()=>{
+
+  voice.muted=true;
+
+  voice.play().then(()=>{
+
+   voice.pause();
+
+   voice.currentTime=0;
+
+   voice.muted=false;
+
+  }).catch(()=>{});
+
+ },
+ {once:true}
+);
+
+
+/* =========================
+   العداد
+========================= */
+
+setInterval(()=>{
+
+ if(paused)return;
+
+ sec++;
+
+ updateTimeDisplay();
+
+ fitTime();
+
+
+ if(!firstDone && sec===5){
+
+  showMsg("🤲🏽🥹 وبشر الصابرين");
+
+  firstDone=true;
+
+ }
+
+
+ if(
+  sec>5 &&
+  (sec-5)%595===0
+ ){
+
+  showMsg("🤲🏽🥹 وبشر الصابرين");
+
+ }
+
+},1000);
+
+
+/* =========================
+   الرسائل
+========================= */
+
+function showMsg(
+ text="🤲🏽🥹 وبشر الصابرين"
+){
+
+ msg.style.display="block";
+
+ msg.style.zIndex="200000";
+
+ msg.innerHTML=text;
+
+
+ if(
+  text==="🤲🏽🥹 وبشر الصابرين"
+ ){
+
+  voice.currentTime=0;
+
+  voice.play().catch(()=>{});
+
+ }
+
+
+ setTimeout(()=>{
+
+  msg.style.display="none";
+
+ },3000);
+
+}
+
+
+/* =========================
+   إيقاف / استئناف
+========================= */
+
+pause.onclick=()=>{
+
+ paused=!paused;
+
+ pause.textContent=
+  paused
+  ? "كسمك"
+  : "⏸️";
+
+};
+
+
+/* =========================
+   إعادة التشغيل
+========================= */
+
+function restart(){
+
+ sec=0;
+
+ firstDone=false;
+
+ updateTimeDisplay();
+
+ enterFullscreen();
+
+}
+
+
+/* =========================
+   السحب لفتح التلاعب
+========================= */
+
+let startX=0;
+let startY=0;
+
+
+document.addEventListener(
+ "touchstart",
+ (e)=>{
+
+  if(
+   e.target.closest("#panel") ||
+   e.target.closest("#passwordScreen")
+  ){
+
+   return;
+
+  }
+
+  startX=e.touches[0].clientX;
+  startY=e.touches[0].clientY;
+
+ }
+);
+
+
+document.addEventListener(
+ "touchend",
+ (e)=>{
+
+  if(
+   e.target.closest("#panel") ||
+   e.target.closest("#passwordScreen")
+  ){
+
+   return;
+
+  }
+
+  let endX=
+   e.changedTouches[0].clientX;
+
+  let endY=
+   e.changedTouches[0].clientY;
+
+  let diffX=endX-startX;
+  let diffY=endY-startY;
+
+
+  /* رأسي:
+     شمال → يمين */
+
+  if(
+   window.innerHeight>
+   window.innerWidth
+  ){
+
+   if(
+    diffX>100 &&
+    Math.abs(diffX)>
+    Math.abs(diffY)
+   ){
+
+    openSettings();
+
+   }
+
+  }
+
+  /* أفقي:
+     تحت → فوق */
+
+  else{
+
+   if(
+    diffY<-100 &&
+    Math.abs(diffY)>
+    Math.abs(diffX)
+   ){
+
+    openSettings();
+
+   }
+
+  }
+
+ }
+);
+
+
+/* =========================
+   فتح التلاعب
+========================= */
+
+function openSettings(){
+
+ controls.style.display="none";
+
+ let unlocked=
+  localStorage.getItem(
+   "settingsUnlocked"
+  )==="yes";
+
+
+ if(unlocked){
+
+  panel.style.display="block";
+
+  resetKeypad();
+
+ }else{
+
+  passwordScreen.style.display=
+   "block";
+
+  loginPass.value="";
+
+  setTimeout(()=>{
+
+   loginPass.focus();
+
+  },100);
+
+ }
+
+}
+
+
+/* =========================
+   الباسورد
+========================= */
+
+function checkPassword(){
+
+ if(loginPass.value!==PASS){
+
+  showMsg("❌ الباسورد غلط يحب");
+
+  return;
+
+ }
+
+ localStorage.setItem(
+  "settingsUnlocked",
+  "yes"
+ );
+
+ passwordScreen.style.display="none";
+
+ panel.style.display="block";
+
+ resetKeypad();
+
+}
+
+
+/* =========================
+   زر خروج
+========================= */
+
+function exitSettings(){
+
+ panel.style.display="none";
+
+}
+
+
+/* =========================
+   قفل التلاعب
+========================= */
+
+function lockSettings(){
+
+ localStorage.removeItem(
+  "settingsUnlocked"
+ );
+
+ panel.style.display="none";
+
+}
+
+
+/* =========================
+   لوحة الأرقام
+========================= */
+
+function updateKeyTime(){
+
+ let v=enteredTime;
+
+ let h=
+  v.substring(0,2).padStart(2,"0");
+
+ let m=
+  v.substring(2,4).padStart(2,"0");
+
+ let s=
+  v.substring(4,6).padStart(2,"0");
+
+ keyTime.textContent=
+  h+":"+m+":"+s;
+
+}
+
+
+function keyPress(n){
+
+ if(enteredTime.length>=6)return;
+
+ enteredTime+=n;
+
+ updateKeyTime();
+
+}
+
+
+function deleteKey(){
+
+ enteredTime=
+  enteredTime.slice(0,-1);
+
+ updateKeyTime();
+
+}
+
+
+function clearKeys(){
+
+ enteredTime="";
+
+ updateKeyTime();
+
+}
+
+
+function resetKeypad(){
+
+ enteredTime="";
+
+ updateKeyTime();
+
+}
+
+
+/* =========================
+   تطبيق الوقت
+========================= */
+
+function applyEdit(){
+
+ if(enteredTime.length===0){
+
+  showMsg("❌ دخل الوقت الأول");
+
+  return;
+
+ }
+
+ let v=
+  enteredTime.padStart(6,"0");
+
+ let h=
+  Number(v.substring(0,2));
+
+ let m=
+  Number(v.substring(2,4));
+
+ let s=
+  Number(v.substring(4,6));
+
+
+ if(m>59 || s>59){
+
+  showMsg("❌ الوقت غلط");
+
+  return;
+
+ }
+
+
+ sec=
+  (h*3600)+
+  (m*60)+
+  s;
+
+ firstDone=false;
+
+ updateTimeDisplay();
+
+ fitTime();
+
+
+ /*
+    حفظ الوقت ثم الخروج
+ */
+
+ panel.style.display="none";
+
+ showMsg("✅ تم");
+
+}
+
+
+/* =========================
+   الضغط العادي على الشاشة
+   + Fullscreen
+========================= */
+
+document.addEventListener(
+ "click",
+ function(e){
+
+  /* لو ضغط زر من التلاعب
+     لا نغير أزرار العداد */
+
+  if(
+   e.target.closest("#panel") ||
+   e.target.closest("#passwordScreen")
+  ){
+
+   return;
+
+  }
+
+
+  /* زر من أزرار العداد */
+
+  if(e.target.closest(".btn")){
+
+   enterFullscreen();
+
+   return;
+
+  }
+
+
+  /*
+     أي ضغطة عادية على الشاشة:
+     Fullscreen + إظهار/إخفاء الأزرار
+  */
+
+  controls.style.display=
+   controls.style.display==="none"
+   ? "flex"
+   : "none";
+
+  enterFullscreen();
+
+ });
+
+
+/* =========================
+   Service Worker
+========================= */
+
+if("serviceWorker" in navigator){
+
+ navigator.serviceWorker.register(
+  "./sw.js"
+ );
+
+}
+
+</script>
+
+</body>
 </html>
