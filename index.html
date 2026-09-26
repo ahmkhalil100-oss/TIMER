@@ -1,18 +1,12 @@
 <!DOCTYPE html>
 <html lang="ar">
 <head>
-
 <link rel="manifest" href="manifest.json">
-
 <meta charset="UTF-8">
-
-<meta name="viewport"
-      content="width=device-width, initial-scale=1.0">
-
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>عداد</title>
 
 <style>
-
 html,body{
  margin:0;
  height:100%;
@@ -159,9 +153,7 @@ input{
  background:#222;
  color:white;
 }
-
 </style>
-
 </head>
 
 <body>
@@ -170,26 +162,19 @@ input{
 
 <div id="message"></div>
 
-
 <!-- أزرار العداد -->
-
 <div id="controls">
 
 <button class="btn" id="pause">⏸️</button>
 
-<button class="btn"
-        onclick="restart()">🔄</button>
+<button class="btn" onclick="restart()">🔄</button>
 
-<button class="btn"
-        id="eye">👁️</button>
+<button class="btn" id="eye">👁️</button>
 
 </div>
 
-
 <!-- شاشة الباسورد -->
-
-<div id="passwordScreen"
-     class="panel">
+<div id="passwordScreen" class="panel">
 
 <h3>🔐 دخول</h3>
 
@@ -197,102 +182,74 @@ input{
  id="loginPass"
  type="password"
  inputmode="numeric"
- placeholder="الباسورد">
+ placeholder="الباسورد"
+>
 
 <br>
 
 <button onclick="checkPassword()">
-دخول
+ دخول
 </button>
 
 </div>
 
-
 <!-- شاشة التلاعب -->
-
-<div id="panel"
-     class="panel">
+<div id="panel" class="panel">
 
 <h3>⚙️ التلاعب</h3>
 
 <div id="keyTime">
-00:00:00
+ 00:00:00
 </div>
-
 
 <div class="keypad">
 
-<button class="key"
- onclick="keyPress('1')">1</button>
+<button class="key" onclick="keyPress('1')">1</button>
+<button class="key" onclick="keyPress('2')">2</button>
+<button class="key" onclick="keyPress('3')">3</button>
 
-<button class="key"
- onclick="keyPress('2')">2</button>
+<button class="key" onclick="keyPress('4')">4</button>
+<button class="key" onclick="keyPress('5')">5</button>
+<button class="key" onclick="keyPress('6')">6</button>
 
-<button class="key"
- onclick="keyPress('3')">3</button>
+<button class="key" onclick="keyPress('7')">7</button>
+<button class="key" onclick="keyPress('8')">8</button>
+<button class="key" onclick="keyPress('9')">9</button>
 
-<button class="key"
- onclick="keyPress('4')">4</button>
+<button class="key special" onclick="deleteKey()">⌫</button>
 
-<button class="key"
- onclick="keyPress('5')">5</button>
+<button class="key" onclick="keyPress('0')">0</button>
 
-<button class="key"
- onclick="keyPress('6')">6</button>
-
-<button class="key"
- onclick="keyPress('7')">7</button>
-
-<button class="key"
- onclick="keyPress('8')">8</button>
-
-<button class="key"
- onclick="keyPress('9')">9</button>
-
-<button class="key special"
- onclick="deleteKey()">⌫</button>
-
-<button class="key"
- onclick="keyPress('0')">0</button>
-
-<button class="key special"
- onclick="clearKeys()">مسح</button>
+<button class="key special" onclick="clearKeys()">
+مسح
+</button>
 
 </div>
-
 
 <div class="settingsActions">
 
 <button onclick="applyEdit()">
-تم
+ تم
 </button>
 
-<button id="exitSettings"
-        onclick="exitSettings()">
-خروج
-</button>
-
-</div>
-
-
-<button id="lockSettings"
-        onclick="lockSettings()">
-
-🔒 قفل التلاعب
-
+<button id="exitSettings" onclick="exitSettings()">
+ خروج
 </button>
 
 </div>
 
+<button id="lockSettings" onclick="lockSettings()">
+ 🔒 قفل التلاعب
+</button>
 
-<audio id="voice"
-       src="Quran.mp3"></audio>
+</div>
 
+<audio id="voice" src="Quran.mp3"></audio>
 
 <script>
 
 /* =========================
-   المتغيرات
+المتغيرات
 ========================= */
 
 let sec=0;
@@ -308,14 +265,11 @@ const voice=document.getElementById("voice");
 const controls=document.getElementById("controls");
 const eye=document.getElementById("eye");
 const pause=document.getElementById("pause");
-
 const panel=document.getElementById("panel");
 const passwordScreen=
  document.getElementById("passwordScreen");
-
 const loginPass=
  document.getElementById("loginPass");
-
 const keyTime=
  document.getElementById("keyTime");
 
@@ -323,7 +277,7 @@ let enteredTime="";
 
 
 /* =========================
-   منع إطفاء الشاشة
+منع إطفاء الشاشة
 ========================= */
 
 let wakeLock=null;
@@ -360,7 +314,7 @@ document.addEventListener(
 
 
 /* =========================
-   Fullscreen
+Fullscreen
 ========================= */
 
 function enterFullscreen(){
@@ -377,7 +331,7 @@ function enterFullscreen(){
 
 
 /* =========================
-   تنسيق الوقت
+تنسيق الوقت
 ========================= */
 
 function format(s){
@@ -398,12 +352,13 @@ function format(s){
 
 
 /* =========================
-   ضبط حجم الرقم
+ضبط حجم الرقم
 ========================= */
 
 function fitTime(){
 
  const w=window.innerWidth;
+
  const h=window.innerHeight;
 
  let size=Math.min(w,h);
@@ -436,7 +391,7 @@ window.addEventListener(
 
 
 /* =========================
-   تحديث الوقت
+تحديث الوقت
 ========================= */
 
 function updateTimeDisplay(){
@@ -455,7 +410,7 @@ function updateTimeDisplay(){
 
 
 /* =========================
-   العين
+العين
 ========================= */
 
 eye.onclick=function(e){
@@ -466,8 +421,8 @@ eye.onclick=function(e){
 
  eye.textContent=
   hiddenTime
-  ? "👁️‍🗨️"
-  : "👁️";
+   ? "👁️‍🗨️"
+   : "👁️";
 
  updateTimeDisplay();
 
@@ -479,7 +434,7 @@ eye.onclick=function(e){
 
 
 /* =========================
-   تشغيل الصوت
+تشغيل الصوت
 ========================= */
 
 document.body.addEventListener(
@@ -504,7 +459,7 @@ document.body.addEventListener(
 
 
 /* =========================
-   العداد
+العداد
 ========================= */
 
 setInterval(()=>{
@@ -517,7 +472,6 @@ setInterval(()=>{
 
  fitTime();
 
-
  if(!firstDone && sec===5){
 
   showMsg("🤲🏽🥹 وبشر الصابرين");
@@ -525,7 +479,6 @@ setInterval(()=>{
   firstDone=true;
 
  }
-
 
  if(
   sec>5 &&
@@ -540,7 +493,7 @@ setInterval(()=>{
 
 
 /* =========================
-   الرسائل
+الرسائل
 ========================= */
 
 function showMsg(
@@ -553,7 +506,6 @@ function showMsg(
 
  msg.innerHTML=text;
 
-
  if(
   text==="🤲🏽🥹 وبشر الصابرين"
  ){
@@ -563,7 +515,6 @@ function showMsg(
   voice.play().catch(()=>{});
 
  }
-
 
  setTimeout(()=>{
 
@@ -575,7 +526,7 @@ function showMsg(
 
 
 /* =========================
-   إيقاف / استئناف
+إيقاف / استئناف
 ========================= */
 
 pause.onclick=()=>{
@@ -584,14 +535,14 @@ pause.onclick=()=>{
 
  pause.textContent=
   paused
-  ? "كسمك"
-  : "⏸️";
+   ? "كسمك"
+   : "⏸️";
 
 };
 
 
 /* =========================
-   إعادة التشغيل
+إعادة التشغيل
 ========================= */
 
 function restart(){
@@ -608,12 +559,11 @@ function restart(){
 
 
 /* =========================
-   السحب لفتح التلاعب
+السحب لفتح التلاعب
 ========================= */
 
 let startX=0;
 let startY=0;
-
 
 document.addEventListener(
  "touchstart",
@@ -629,6 +579,7 @@ document.addEventListener(
   }
 
   startX=e.touches[0].clientX;
+
   startY=e.touches[0].clientY;
 
  }
@@ -655,11 +606,11 @@ document.addEventListener(
    e.changedTouches[0].clientY;
 
   let diffX=endX-startX;
+
   let diffY=endY-startY;
 
 
-  /* رأسي:
-     شمال → يمين */
+  /* رأسي: شمال → يمين */
 
   if(
    window.innerHeight>
@@ -678,8 +629,8 @@ document.addEventListener(
 
   }
 
-  /* أفقي:
-     تحت → فوق */
+
+  /* أفقي: تحت → فوق */
 
   else{
 
@@ -700,7 +651,7 @@ document.addEventListener(
 
 
 /* =========================
-   فتح التلاعب
+فتح التلاعب
 ========================= */
 
 function openSettings(){
@@ -711,7 +662,6 @@ function openSettings(){
   localStorage.getItem(
    "settingsUnlocked"
   )==="yes";
-
 
  if(unlocked){
 
@@ -738,14 +688,18 @@ function openSettings(){
 
 
 /* =========================
-   الباسورد
+الباسورد
 ========================= */
 
 function checkPassword(){
 
- if(loginPass.value!==PASS){
+ if(
+  loginPass.value!==PASS
+ ){
 
-  showMsg("❌ الباسورد غلط يحب");
+  showMsg(
+   "❌ الباسورد غلط يحب"
+  );
 
   return;
 
@@ -756,9 +710,11 @@ function checkPassword(){
   "yes"
  );
 
- passwordScreen.style.display="none";
+ passwordScreen.style.display=
+  "none";
 
- panel.style.display="block";
+ panel.style.display=
+  "block";
 
  resetKeypad();
 
@@ -766,7 +722,7 @@ function checkPassword(){
 
 
 /* =========================
-   زر خروج
+زر خروج
 ========================= */
 
 function exitSettings(){
@@ -777,7 +733,7 @@ function exitSettings(){
 
 
 /* =========================
-   قفل التلاعب
+قفل التلاعب
 ========================= */
 
 function lockSettings(){
@@ -792,7 +748,7 @@ function lockSettings(){
 
 
 /* =========================
-   لوحة الأرقام
+لوحة الأرقام
 ========================= */
 
 function updateKeyTime(){
@@ -800,13 +756,16 @@ function updateKeyTime(){
  let v=enteredTime;
 
  let h=
-  v.substring(0,2).padStart(2,"0");
+  v.substring(0,2)
+   .padStart(2,"0");
 
  let m=
-  v.substring(2,4).padStart(2,"0");
+  v.substring(2,4)
+   .padStart(2,"0");
 
  let s=
-  v.substring(4,6).padStart(2,"0");
+  v.substring(4,6)
+   .padStart(2,"0");
 
  keyTime.textContent=
   h+":"+m+":"+s;
@@ -854,14 +813,16 @@ function resetKeypad(){
 
 
 /* =========================
-   تطبيق الوقت
+تطبيق الوقت
 ========================= */
 
 function applyEdit(){
 
  if(enteredTime.length===0){
 
-  showMsg("❌ دخل الوقت الأول");
+  showMsg(
+   "❌ دخل الوقت الأول"
+  );
 
   return;
 
@@ -879,15 +840,18 @@ function applyEdit(){
  let s=
   Number(v.substring(4,6));
 
+ if(
+  m>59 ||
+  s>59
+ ){
 
- if(m>59 || s>59){
-
-  showMsg("❌ الوقت غلط");
+  showMsg(
+   "❌ الوقت غلط"
+  );
 
   return;
 
  }
-
 
  sec=
   (h*3600)+
@@ -900,10 +864,7 @@ function applyEdit(){
 
  fitTime();
 
-
- /*
-    حفظ الوقت ثم الخروج
- */
+ /* حفظ الوقت ثم الخروج */
 
  panel.style.display="none";
 
@@ -913,16 +874,14 @@ function applyEdit(){
 
 
 /* =========================
-   الضغط العادي على الشاشة
-   + Fullscreen
+الضغط العادي على الشاشة + Fullscreen
 ========================= */
 
 document.addEventListener(
  "click",
  function(e){
 
-  /* لو ضغط زر من التلاعب
-     لا نغير أزرار العداد */
+  /* لو ضغط زر من التلاعب لا نغير أزرار العداد */
 
   if(
    e.target.closest("#panel") ||
@@ -936,7 +895,9 @@ document.addEventListener(
 
   /* زر من أزرار العداد */
 
-  if(e.target.closest(".btn")){
+  if(
+   e.target.closest(".btn")
+  ){
 
    enterFullscreen();
 
@@ -945,26 +906,27 @@ document.addEventListener(
   }
 
 
-  /*
-     أي ضغطة عادية على الشاشة:
-     Fullscreen + إظهار/إخفاء الأزرار
-  */
+  /* أي ضغطة عادية على الشاشة:
+  Fullscreen + إظهار/إخفاء الأزرار */
 
   controls.style.display=
    controls.style.display==="none"
-   ? "flex"
-   : "none";
+    ? "flex"
+    : "none";
 
   enterFullscreen();
 
- });
+ }
+);
 
 
 /* =========================
-   Service Worker
+Service Worker
 ========================= */
 
-if("serviceWorker" in navigator){
+if(
+ "serviceWorker" in navigator
+){
 
  navigator.serviceWorker.register(
   "./sw.js"
@@ -975,4 +937,4 @@ if("serviceWorker" in navigator){
 </script>
 
 </body>
-</html>
+      </html>
