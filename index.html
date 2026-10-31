@@ -56,6 +56,101 @@ html,body{
  background:rgba(255,255,255,0.1);
 }
 
+#rotateBtn{
+ color:#fff;
+ display:flex;
+ align-items:center;
+ justify-content:center;
+ min-width:calc(5vw + 32px);
+ min-height:calc(5vw + 32px);
+}
+
+#rotateBtn svg{
+ width:1.15em;
+ height:1.15em;
+ display:block;
+ stroke:#fff;
+}
+
+.capture-hide{
+ visibility:hidden !important;
+}
+
+/* بطاقة الإنجاز */
+#achievementCard{
+ position:fixed;
+ inset:0;
+ display:none;
+ z-index:300000;
+ background:radial-gradient(circle,#252525,#000);
+ color:white;
+ align-items:center;
+ justify-items:center;
+ text-align:center;
+ padding:10px 16px;
+ box-sizing:border-box;
+ direction:rtl;
+}
+
+#achievementCard .achievement-content{
+ width:100%;
+ height:100%;
+ display:flex;
+ flex-direction:column;
+ align-items:center;
+ justify-content:center;
+ gap:clamp(4px,2vh,15px);
+}
+
+#achievementCard .achievement-icon{
+ font-size:clamp(32px,13vh,90px);
+ line-height:1;
+ margin:0;
+}
+
+#achievementCard .achievement-title{
+ font-size:clamp(18px,7vh,50px);
+ line-height:1.15;
+ font-weight:800;
+ margin:0;
+}
+
+#achievementCard .achievement-subtitle{
+ font-size:clamp(17px,5vh,34px);
+ line-height:1.1;
+ color:#ddd;
+ margin:0;
+}
+
+#achievementCard .achievement-time{
+ direction:ltr;
+ font-size:clamp(25px,9vh,72px);
+ font-weight:700;
+ letter-spacing:1px;
+ padding:6px 16px;
+ border:1px solid #555;
+ border-radius:18px;
+ background:rgba(255,255,255,.07);
+ white-space:nowrap;
+ max-width:96%;
+ box-sizing:border-box;
+}
+
+@media(orientation:portrait){
+ #achievementCard .achievement-icon{
+  font-size:clamp(55px,17vw,105px);
+ }
+ #achievementCard .achievement-title{
+  font-size:clamp(24px,7vw,44px);
+ }
+ #achievementCard .achievement-subtitle{
+  font-size:clamp(20px,5vw,32px);
+ }
+ #achievementCard .achievement-time{
+  font-size:clamp(32px,10vw,68px);
+ }
+}
+
 .panel{
  position:fixed;
  top:10%;
@@ -162,6 +257,15 @@ input{
 
 <div id="message"></div>
 
+<div id="achievementCard">
+ <div class="achievement-content">
+  <div class="achievement-icon">🏆</div>
+  <h1 class="achievement-title">عاش! عملت إنجاز 👏</h1>
+  <p class="achievement-subtitle">وذاكرت 💪</p>
+  <div class="achievement-time" id="achievementTime">00:00:00</div>
+ </div>
+</div>
+
 <!-- أزرار العداد -->
 <div id="controls">
 
@@ -170,6 +274,27 @@ input{
 <button class="btn" onclick="restart()">🔄</button>
 
 <button class="btn" id="eye">👁️</button>
+
+<button class="btn" id="screenshotBtn"
+ onclick="captureTimer(event)"
+ title="لقطة شاشة" aria-label="لقطة شاشة">📸</button>
+
+<button class="btn" id="rotateBtn"
+ onclick="toggleOrientation()"
+ title="تحويل للوضع الأفقي"
+ aria-label="تدوير الشاشة">
+
+<svg viewBox="0 0 24 24" fill="none"
+ stroke="#fff" stroke-width="2.5"
+ stroke-linecap="round" stroke-linejoin="round"
+ aria-hidden="true">
+ <path d="M20 7v5h-5"/>
+ <path d="M4 17v-5h5"/>
+ <path d="M5.6 9A7 7 0 0 1 18 6.5L20 12"/>
+ <path d="M18.4 15A7 7 0 0 1 6 17.5L4 12"/>
+</svg>
+
+</button>
 
 </div>
 
@@ -187,9 +312,7 @@ input{
 
 <br>
 
-<button onclick="checkPassword()">
- دخول
-</button>
+<button onclick="checkPassword()">دخول</button>
 
 </div>
 
@@ -198,9 +321,7 @@ input{
 
 <h3>⚙️ التلاعب</h3>
 
-<div id="keyTime">
- 00:00:00
-</div>
+<div id="keyTime">00:00:00</div>
 
 <div class="keypad">
 
@@ -220,21 +341,15 @@ input{
 
 <button class="key" onclick="keyPress('0')">0</button>
 
-<button class="key special" onclick="clearKeys()">
-مسح
-</button>
+<button class="key special" onclick="clearKeys()">مسح</button>
 
 </div>
 
 <div class="settingsActions">
 
-<button onclick="applyEdit()">
- تم
-</button>
+<button onclick="applyEdit()">تم</button>
 
-<button id="exitSettings" onclick="exitSettings()">
- خروج
-</button>
+<button id="exitSettings" onclick="exitSettings()">خروج</button>
 
 </div>
 
@@ -246,11 +361,11 @@ input{
 
 <audio id="voice" src="Quran.mp3"></audio>
 
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+
 <script>
 
-/* =========================
-المتغيرات
-========================= */
+/* المتغيرات */
 
 let sec=0;
 let paused=false;
@@ -266,80 +381,46 @@ const controls=document.getElementById("controls");
 const eye=document.getElementById("eye");
 const pause=document.getElementById("pause");
 const panel=document.getElementById("panel");
-const passwordScreen=
- document.getElementById("passwordScreen");
-const loginPass=
- document.getElementById("loginPass");
-const keyTime=
- document.getElementById("keyTime");
+const passwordScreen=document.getElementById("passwordScreen");
+const loginPass=document.getElementById("loginPass");
+const keyTime=document.getElementById("keyTime");
+const rotateBtn=document.getElementById("rotateBtn");
 
 let enteredTime="";
 
-
-/* =========================
-منع إطفاء الشاشة
-========================= */
+/* منع إطفاء الشاشة */
 
 let wakeLock=null;
 
 async function keepScreenOn(){
-
  try{
-
   if("wakeLock" in navigator){
-
-   wakeLock=
-    await navigator.wakeLock.request("screen");
-
+   wakeLock=await navigator.wakeLock.request("screen");
   }
-
  }catch(e){}
-
 }
 
 keepScreenOn();
 
-document.addEventListener(
- "visibilitychange",
- ()=>{
-
-  if(document.visibilityState==="visible"){
-
-   keepScreenOn();
-
-  }
-
+document.addEventListener("visibilitychange",()=>{
+ if(document.visibilityState==="visible"){
+  keepScreenOn();
  }
-);
+});
 
-
-/* =========================
-Fullscreen
-========================= */
+/* Fullscreen */
 
 function enterFullscreen(){
-
  if(!document.fullscreenElement){
-
-  document.documentElement
-   .requestFullscreen()
-   .catch(()=>{});
-
+  document.documentElement.requestFullscreen().catch(()=>{});
  }
-
 }
 
-
-/* =========================
-تنسيق الوقت
-========================= */
+/* تنسيق الوقت */
 
 function format(s){
-
  let h=Math.floor(s/3600);
-
  let m=Math.floor((s%3600)/60);
-
  let ss=s%60;
 
  return String(h).padStart(2,"0")
@@ -347,18 +428,146 @@ function format(s){
   +String(m).padStart(2,"0")
   +":"
   +String(ss).padStart(2,"0");
+}
+
+/* لقطة شاشة الإنجاز */
+
+async function captureTimer(event){
+
+ if(event) event.stopPropagation();
+
+ const button=document.getElementById("screenshotBtn");
+ const oldLabel=button.textContent;
+ const achievement=document.getElementById("achievementCard");
+ const achievementTime=document.getElementById("achievementTime");
+
+ const hiddenElements=[
+  time,
+  msg,
+  controls,
+  panel,
+  passwordScreen
+ ];
+
+ if(typeof window.html2canvas!=="function"){
+  showMsg("⚠️ تعذر تحميل أداة التصوير؛ اتأكد من اتصال الإنترنت");
+  return;
+ }
+
+ try{
+
+  button.textContent="⏳";
+
+  hiddenElements.forEach(el=>el.classList.add("capture-hide"));
+
+  achievementTime.textContent=format(sec);
+  achievement.style.display="grid";
+
+  await new Promise(resolve=>
+   requestAnimationFrame(()=>
+    requestAnimationFrame(resolve)
+   )
+  );
+
+  const canvas=await html2canvas(achievement,{
+   backgroundColor:"#000000",
+   scale:2,
+   useCORS:true
+  });
+
+  const link=document.createElement("a");
+
+  link.download="achievement-"+new Date()
+   .toISOString().replace(/[:.]/g,"-")+".png";
+
+  link.href=canvas.toDataURL("image/png");
+
+  document.body.appendChild(link);
+  link.click();
+  link.remove();
+
+ }catch(error){
+
+  showMsg("❌ مقدرناش نحفظ صورة الإنجاز");
+
+ }finally{
+
+  achievement.style.display="none";
+
+  hiddenElements.forEach(el=>
+   el.classList.remove("capture-hide")
+  );
+
+  button.textContent=oldLabel;
+
+  showMsg("🏆 عاش! إنجاز جديد");
+ }
 
 }
 
+/* تدوير الشاشة */
 
-/* =========================
-ضبط حجم الرقم
-========================= */
+function updateRotateButton(){
+
+ const landscape=screen.orientation
+  ? screen.orientation.type.includes("landscape")
+  : window.matchMedia("(orientation: landscape)").matches;
+
+ rotateBtn.title=landscape
+  ? "الرجوع للوضع الرأسي"
+  : "تحويل للوضع الأفقي";
+
+ rotateBtn.setAttribute("aria-label",rotateBtn.title);
+}
+
+async function toggleOrientation(){
+
+ try{
+
+  if(!document.fullscreenElement){
+   await document.documentElement.requestFullscreen();
+  }
+
+  if(!screen.orientation ||
+     typeof screen.orientation.lock!=="function"){
+
+   showMsg("❌ المتصفح لا يدعم تدوير الشاشة");
+   return;
+  }
+
+  const landscape=screen.orientation.type.includes("landscape") ||
+   window.matchMedia("(orientation: landscape)").matches;
+
+  await screen.orientation.lock(
+   landscape ? "portrait" : "landscape"
+  );
+
+  updateRotateButton();
+
+ }catch(e){
+
+  showMsg("⚠️ فعّل ملء الشاشة وجرّب تاني");
+
+ }
+}
+
+if(screen.orientation){
+ screen.orientation.addEventListener("change",()=>{
+  updateRotateButton();
+  fitTime();
+ });
+}
+
+window.addEventListener("orientationchange",()=>{
+ updateRotateButton();
+ fitTime();
+});
+
+/* ضبط حجم الرقم */
 
 function fitTime(){
 
  const w=window.innerWidth;
-
  const h=window.innerHeight;
 
  let size=Math.min(w,h);
@@ -366,52 +575,36 @@ function fitTime(){
  time.style.fontSize=size+"px";
 
  while(
-  (
-   time.scrollWidth>w*0.95 ||
-   time.scrollHeight>h*0.5
-  )
-  &&
+  (time.scrollWidth>w*0.95 ||
+   time.scrollHeight>h*0.5) &&
   size>20
  ){
-
   size-=2;
-
   time.style.fontSize=size+"px";
-
  }
-
 }
 
 fitTime();
 
-window.addEventListener(
- "resize",
- fitTime
-);
+window.addEventListener("resize",()=>{
+ fitTime();
+ updateRotateButton();
+});
 
+updateRotateButton();
 
-/* =========================
-تحديث الوقت
-========================= */
+/* تحديث الوقت */
 
 function updateTimeDisplay(){
 
  if(hiddenTime){
-
   time.textContent="??:??:??";
-
  }else{
-
   time.textContent=format(sec);
-
  }
-
 }
 
-
-/* =========================
-العين
-========================= */
+/* العين */
 
 eye.onclick=function(e){
 
@@ -419,48 +612,28 @@ eye.onclick=function(e){
 
  hiddenTime=!hiddenTime;
 
- eye.textContent=
-  hiddenTime
-   ? "👁️‍🗨️"
-   : "👁️";
+ eye.textContent=hiddenTime ? "👁️‍🗨️" : "👁️";
 
  updateTimeDisplay();
-
  fitTime();
-
  enterFullscreen();
-
 };
 
+/* تشغيل الصوت */
 
-/* =========================
-تشغيل الصوت
-========================= */
+document.body.addEventListener("click",()=>{
 
-document.body.addEventListener(
- "click",
- ()=>{
+ voice.muted=true;
 
-  voice.muted=true;
+ voice.play().then(()=>{
+  voice.pause();
+  voice.currentTime=0;
+  voice.muted=false;
+ }).catch(()=>{});
 
-  voice.play().then(()=>{
+},{once:true});
 
-   voice.pause();
-
-   voice.currentTime=0;
-
-   voice.muted=false;
-
-  }).catch(()=>{});
-
- },
- {once:true}
-);
-
-
-/* =========================
-العداد
-========================= */
+/* العداد */
 
 setInterval(()=>{
 
@@ -469,472 +642,267 @@ setInterval(()=>{
  sec++;
 
  updateTimeDisplay();
-
  fitTime();
 
  if(!firstDone && sec===5){
 
-  showMsg("🤲🏽🥹 وبشر الصابرين");
+  showMsg("﴿ وَأَن لَّيْسَ لِلْإِنسَانِ إِلَّا مَا سَعَىٰ ﴾");
 
   firstDone=true;
-
  }
 
- if(
-  sec>5 &&
-  (sec-5)%595===0
- ){
+ if(sec>5 && (sec-5)%595===0){
 
-  showMsg("🤲🏽🥹 وبشر الصابرين");
+  showMsg("﴿ وَأَن لَّيْسَ لِلْإِنسَانِ إِلَّا مَا سَعَىٰ ﴾");
 
  }
 
 },1000);
 
+/* الرسائل */
 
-/* =========================
-الرسائل
-========================= */
-
-function showMsg(
- text="🤲🏽🥹 وبشر الصابرين"
-){
+function showMsg(text="﴿ وَأَن لَّيْسَ لِلْإِنسَانِ إِلَّا مَا سَعَىٰ ﴾"){
 
  msg.style.display="block";
-
  msg.style.zIndex="200000";
-
  msg.innerHTML=text;
 
- if(
-  text==="🤲🏽🥹 وبشر الصابرين"
- ){
+ if(text==="﴿ وَأَن لَّيْسَ لِلْإِنسَانِ إِلَّا مَا سَعَىٰ ﴾"){
 
   voice.currentTime=0;
-
   voice.play().catch(()=>{});
 
  }
 
  setTimeout(()=>{
-
   msg.style.display="none";
-
  },3000);
-
 }
 
-
-/* =========================
-إيقاف / استئناف
-========================= */
+/* إيقاف / استئناف */
 
 pause.onclick=()=>{
 
  paused=!paused;
 
- pause.textContent=
-  paused
-   ? "كسمك"
-   : "⏸️";
+ pause.textContent=paused ? "كسمك" : "⏸️";
 
 };
 
-
-/* =========================
-إعادة التشغيل
-========================= */
+/* إعادة التشغيل */
 
 function restart(){
 
  sec=0;
-
  firstDone=false;
 
  updateTimeDisplay();
-
  enterFullscreen();
-
 }
 
-
-/* =========================
-السحب لفتح التلاعب
-========================= */
+/* السحب لفتح التلاعب */
 
 let startX=0;
 let startY=0;
 
-document.addEventListener(
- "touchstart",
- (e)=>{
+document.addEventListener("touchstart",(e)=>{
 
-  if(
-   e.target.closest("#panel") ||
-   e.target.closest("#passwordScreen")
-  ){
+ if(e.target.closest("#panel") ||
+    e.target.closest("#passwordScreen"))return;
 
-   return;
+ startX=e.touches[0].clientX;
+ startY=e.touches[0].clientY;
 
+});
+
+document.addEventListener("touchend",(e)=>{
+
+ if(e.target.closest("#panel") ||
+    e.target.closest("#passwordScreen"))return;
+
+ let endX=e.changedTouches[0].clientX;
+ let endY=e.changedTouches[0].clientY;
+
+ let diffX=endX-startX;
+ let diffY=endY-startY;
+
+ if(window.innerHeight>window.innerWidth){
+
+  if(diffX>100 && Math.abs(diffX)>Math.abs(diffY)){
+   openSettings();
   }
 
-  startX=e.touches[0].clientX;
+ }else{
 
-  startY=e.touches[0].clientY;
-
- }
-);
-
-
-document.addEventListener(
- "touchend",
- (e)=>{
-
-  if(
-   e.target.closest("#panel") ||
-   e.target.closest("#passwordScreen")
-  ){
-
-   return;
-
-  }
-
-  let endX=
-   e.changedTouches[0].clientX;
-
-  let endY=
-   e.changedTouches[0].clientY;
-
-  let diffX=endX-startX;
-
-  let diffY=endY-startY;
-
-
-  /* رأسي: شمال → يمين */
-
-  if(
-   window.innerHeight>
-   window.innerWidth
-  ){
-
-   if(
-    diffX>100 &&
-    Math.abs(diffX)>
-    Math.abs(diffY)
-   ){
-
-    openSettings();
-
-   }
-
-  }
-
-
-  /* أفقي: تحت → فوق */
-
-  else{
-
-   if(
-    diffY<-100 &&
-    Math.abs(diffY)>
-    Math.abs(diffX)
-   ){
-
-    openSettings();
-
-   }
-
+  if(diffY<-100 && Math.abs(diffY)>Math.abs(diffX)){
+   openSettings();
   }
 
  }
-);
 
+});
 
-/* =========================
-فتح التلاعب
-========================= */
+/* فتح التلاعب */
 
 function openSettings(){
 
  controls.style.display="none";
 
- let unlocked=
-  localStorage.getItem(
-   "settingsUnlocked"
-  )==="yes";
+ let unlocked=localStorage.getItem("settingsUnlocked")==="yes";
 
  if(unlocked){
 
   panel.style.display="block";
-
   resetKeypad();
 
  }else{
 
-  passwordScreen.style.display=
-   "block";
-
+  passwordScreen.style.display="block";
   loginPass.value="";
 
   setTimeout(()=>{
-
    loginPass.focus();
-
   },100);
 
  }
 
 }
 
-
-/* =========================
-الباسورد
-========================= */
+/* الباسورد */
 
 function checkPassword(){
 
- if(
-  loginPass.value!==PASS
- ){
+ if(loginPass.value!==PASS){
 
-  showMsg(
-   "❌ الباسورد غلط يحب"
-  );
-
+  showMsg("❌ الباسورد غلط يحب");
   return;
-
  }
 
- localStorage.setItem(
-  "settingsUnlocked",
-  "yes"
- );
+ localStorage.setItem("settingsUnlocked","yes");
 
- passwordScreen.style.display=
-  "none";
-
- panel.style.display=
-  "block";
+ passwordScreen.style.display="none";
+ panel.style.display="block";
 
  resetKeypad();
-
 }
 
-
-/* =========================
-زر خروج
-========================= */
+/* زر خروج */
 
 function exitSettings(){
-
  panel.style.display="none";
-
 }
 
-
-/* =========================
-قفل التلاعب
-========================= */
+/* قفل التلاعب */
 
 function lockSettings(){
 
- localStorage.removeItem(
-  "settingsUnlocked"
- );
-
+ localStorage.removeItem("settingsUnlocked");
  panel.style.display="none";
 
 }
 
-
-/* =========================
-لوحة الأرقام
-========================= */
+/* لوحة الأرقام */
 
 function updateKeyTime(){
 
  let v=enteredTime;
 
- let h=
-  v.substring(0,2)
-   .padStart(2,"0");
+ let h=v.substring(0,2).padStart(2,"0");
+ let m=v.substring(2,4).padStart(2,"0");
+ let s=v.substring(4,6).padStart(2,"0");
 
- let m=
-  v.substring(2,4)
-   .padStart(2,"0");
-
- let s=
-  v.substring(4,6)
-   .padStart(2,"0");
-
- keyTime.textContent=
-  h+":"+m+":"+s;
-
+ keyTime.textContent=h+":"+m+":"+s;
 }
-
 
 function keyPress(n){
 
  if(enteredTime.length>=6)return;
 
  enteredTime+=n;
-
  updateKeyTime();
-
 }
-
 
 function deleteKey(){
 
- enteredTime=
-  enteredTime.slice(0,-1);
-
+ enteredTime=enteredTime.slice(0,-1);
  updateKeyTime();
-
 }
-
 
 function clearKeys(){
 
  enteredTime="";
-
  updateKeyTime();
-
 }
-
 
 function resetKeypad(){
 
  enteredTime="";
-
  updateKeyTime();
-
 }
 
-
-/* =========================
-تطبيق الوقت
-========================= */
+/* تطبيق الوقت */
 
 function applyEdit(){
 
  if(enteredTime.length===0){
 
-  showMsg(
-   "❌ دخل الوقت الأول"
-  );
-
+  showMsg("❌ دخل الوقت الأول");
   return;
-
  }
 
- let v=
-  enteredTime.padStart(6,"0");
+ let v=enteredTime.padStart(6,"0");
 
- let h=
-  Number(v.substring(0,2));
+ let h=Number(v.substring(0,2));
+ let m=Number(v.substring(2,4));
+ let s=Number(v.substring(4,6));
 
- let m=
-  Number(v.substring(2,4));
+ if(m>59 || s>59){
 
- let s=
-  Number(v.substring(4,6));
-
- if(
-  m>59 ||
-  s>59
- ){
-
-  showMsg(
-   "❌ الوقت غلط"
-  );
-
+  showMsg("❌ الوقت غلط");
   return;
-
  }
 
- sec=
-  (h*3600)+
-  (m*60)+
-  s;
+ sec=(h*3600)+(m*60)+s;
 
  firstDone=false;
 
  updateTimeDisplay();
-
  fitTime();
-
- /* حفظ الوقت ثم الخروج */
 
  panel.style.display="none";
 
  showMsg("✅ تم");
-
 }
 
+/* الضغط العادي على الشاشة + Fullscreen */
 
-/* =========================
-الضغط العادي على الشاشة + Fullscreen
-========================= */
+document.addEventListener("click",function(e){
 
-document.addEventListener(
- "click",
- function(e){
+ if(e.target.closest("#panel") ||
+    e.target.closest("#passwordScreen"))return;
 
-  /* لو ضغط زر من التلاعب لا نغير أزرار العداد */
-
-  if(
-   e.target.closest("#panel") ||
-   e.target.closest("#passwordScreen")
-  ){
-
-   return;
-
-  }
-
-
-  /* زر من أزرار العداد */
-
-  if(
-   e.target.closest(".btn")
-  ){
-
-   enterFullscreen();
-
-   return;
-
-  }
-
-
-  /* أي ضغطة عادية على الشاشة:
-  Fullscreen + إظهار/إخفاء الأزرار */
-
-  controls.style.display=
-   controls.style.display==="none"
-    ? "flex"
-    : "none";
+ if(e.target.closest(".btn")){
 
   enterFullscreen();
-
+  return;
  }
-);
 
+ controls.style.display=
+  controls.style.display==="none" ? "flex" : "none";
 
-/* =========================
-Service Worker
-========================= */
+ enterFullscreen();
 
-if(
- "serviceWorker" in navigator
-){
+});
 
- navigator.serviceWorker.register(
-  "./sw.js"
- );
+/* Service Worker */
+
+if("serviceWorker" in navigator){
+
+ navigator.serviceWorker.register("./sw.js");
 
 }
 
 </script>
 
 </body>
-      </html>
+</html>
