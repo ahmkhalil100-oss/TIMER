@@ -1,4 +1,4 @@
-const CACHE_NAME = "timer-v2";
+const CACHE_NAME = "timer-v3";
 
 const FILES = [
   "./",
@@ -9,13 +9,16 @@ const FILES = [
   "./icon-512.png"
 ];
 
+// تثبيت النسخة الجديدة
 self.addEventListener("install", event => {
   event.waitUntil(
     caches.open(CACHE_NAME).then(cache => cache.addAll(FILES))
   );
+
   self.skipWaiting();
 });
 
+// حذف الكاش القديم
 self.addEventListener("activate", event => {
   event.waitUntil(
     caches.keys().then(keys =>
@@ -26,13 +29,37 @@ self.addEventListener("activate", event => {
       )
     )
   );
+
   self.clients.claim();
 });
 
+// جلب الملفات من الإنترنت أولاً
 self.addEventListener("fetch", event => {
+
+  if (event.request.method !== "GET") return;
+
+  const url = new URL(event.request.url);
+
+  // تجاهل الطلبات الخارجية
+  if (url.origin !== self.location.origin) return;
+
   event.respondWith(
-    caches.match(event.request).then(response => {
-      return response || fetch(event.request);
-    })
+    fetch(event.request)
+      .then(response => {
+
+        if (response && response.ok) {
+          const copy = response.clone();
+
+          caches.open(CACHE_NAME).then(cache => {
+            cache.put(event.request, copy);
+          });
+        }
+
+        return response;
+      })
+      .catch(() => {
+        return caches.match(event.request);
+      })
   );
+
 });
