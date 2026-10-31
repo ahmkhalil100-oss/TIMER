@@ -151,6 +151,7 @@ html,body{
  }
 }
 
+/* قائمة التلاعب */
 .panel{
  position:fixed;
  top:10%;
@@ -163,6 +164,7 @@ html,body{
  display:none;
  z-index:99999;
  text-align:center;
+ box-sizing:border-box;
 }
 
 #keyTime{
@@ -232,6 +234,7 @@ html,body{
 
 <div id="message"></div>
 
+<!-- بطاقة الإنجاز -->
 <div id="achievementCard">
  <div class="achievement-content">
   <div class="achievement-icon">🏆</div>
@@ -453,7 +456,7 @@ async function captureTimer(event){
 
 }
 
-/* تدوير الشاشة */
+/* تدوير الشاشة بدون تفعيل ملء الشاشة */
 
 function updateRotateButton(){
 
@@ -471,10 +474,6 @@ function updateRotateButton(){
 async function toggleOrientation(){
 
  try{
-
-  if(!document.fullscreenElement){
-   await document.documentElement.requestFullscreen();
-  }
 
   if(!screen.orientation ||
      typeof screen.orientation.lock!=="function"){
@@ -494,7 +493,7 @@ async function toggleOrientation(){
 
  }catch(e){
 
-  showMsg("⚠️ فعّل ملء الشاشة وجرّب تاني");
+  showMsg("⚠️ اضغط على مكان فاضي لتفعيل ملء الشاشة الأول");
 
  }
 }
@@ -591,7 +590,6 @@ eye.addEventListener("click",(e)=>{
 
  updateTimeDisplay();
  fitTime();
- enterFullscreen();
 
 });
 
@@ -657,11 +655,13 @@ function showMsg(text="﴿ وَأَن لَّيْسَ لِلْإِنسَانِ إ
 
 /* إيقاف / استئناف */
 
-pause.onclick=()=>{
+pause.onclick=(e)=>{
+
+ e.stopPropagation();
 
  paused=!paused;
 
- pause.textContent=paused ? "كسمك" : "⏸️";
+ pause.textContent=paused ? "▶️" : "⏸️";
 
 };
 
@@ -673,7 +673,8 @@ function restart(){
  firstDone=false;
 
  updateTimeDisplay();
- enterFullscreen();
+ fitTime();
+
 }
 
 /* فتح التلاعب */
@@ -682,7 +683,6 @@ function openSettings(){
 
  panel.style.display="block";
  resetKeypad();
- enterFullscreen();
 
 }
 
@@ -765,17 +765,14 @@ function applyEdit(){
  showMsg("✅ تم");
 }
 
-/* الضغط على الشاشة + Fullscreen */
+/* الضغط على المكان الفاضي فقط */
 
 document.addEventListener("click",function(e){
 
- if(e.target.closest("#panel"))return;
-
- if(e.target.closest(".btn")){
-
-  enterFullscreen();
-  return;
- }
+ if(
+  e.target.closest(".btn") ||
+  e.target.closest("#panel")
+ ) return;
 
  controls.style.display=
   controls.style.display==="none" ? "flex" : "none";
