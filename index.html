@@ -165,13 +165,6 @@ html,body{
  text-align:center;
 }
 
-input{
- width:90%;
- font-size:5vw;
- margin:8px 0;
- text-align:center;
-}
-
 #keyTime{
  font-size:8vw;
  margin:10px auto;
@@ -207,18 +200,6 @@ input{
  font-size:5vw;
 }
 
-#passwordScreen{
- z-index:100000;
-}
-
-#passwordScreen input{
- background:#222;
- color:white;
- border:1px solid #444;
- border-radius:10px;
- padding:8px 0;
-}
-
 .panel button{
  font-size:5vw;
  padding:8px 15px;
@@ -240,12 +221,6 @@ input{
 
 #exitSettings{
  background:#333;
- color:white;
-}
-
-#lockSettings{
- margin-top:12px;
- background:#222;
  color:white;
 }
 </style>
@@ -298,25 +273,7 @@ input{
 
 </div>
 
-<!-- شاشة الباسورد -->
-<div id="passwordScreen" class="panel">
-
-<h3>🔐 دخول</h3>
-
-<input
- id="loginPass"
- type="password"
- inputmode="numeric"
- placeholder="الباسورد"
->
-
-<br>
-
-<button onclick="checkPassword()">دخول</button>
-
-</div>
-
-<!-- شاشة التلاعب -->
+<!-- قائمة التلاعب -->
 <div id="panel" class="panel">
 
 <h3>⚙️ التلاعب</h3>
@@ -353,10 +310,6 @@ input{
 
 </div>
 
-<button id="lockSettings" onclick="lockSettings()">
- 🔒 قفل التلاعب
-</button>
-
 </div>
 
 <audio id="voice" src="Quran.mp3"></audio>
@@ -372,8 +325,6 @@ let paused=false;
 let firstDone=false;
 let hiddenTime=false;
 
-const PASS="135790";
-
 const time=document.getElementById("time");
 const msg=document.getElementById("message");
 const voice=document.getElementById("voice");
@@ -381,8 +332,6 @@ const controls=document.getElementById("controls");
 const eye=document.getElementById("eye");
 const pause=document.getElementById("pause");
 const panel=document.getElementById("panel");
-const passwordScreen=document.getElementById("passwordScreen");
-const loginPass=document.getElementById("loginPass");
 const keyTime=document.getElementById("keyTime");
 const rotateBtn=document.getElementById("rotateBtn");
 
@@ -445,8 +394,7 @@ async function captureTimer(event){
   time,
   msg,
   controls,
-  panel,
-  passwordScreen
+  panel
  ];
 
  if(typeof window.html2canvas!=="function"){
@@ -604,11 +552,38 @@ function updateTimeDisplay(){
  }
 }
 
-/* العين */
+/* العين والضغط المطوّل */
 
-eye.onclick=function(e){
+let eyeTimer=null;
+let longPressTriggered=false;
+
+eye.addEventListener("pointerdown",()=>{
+
+ longPressTriggered=false;
+
+ eyeTimer=setTimeout(()=>{
+  longPressTriggered=true;
+  openSettings();
+ },2000);
+
+});
+
+function cancelEyePress(){
+ clearTimeout(eyeTimer);
+}
+
+eye.addEventListener("pointerup",cancelEyePress);
+eye.addEventListener("pointerleave",cancelEyePress);
+eye.addEventListener("pointercancel",cancelEyePress);
+
+eye.addEventListener("click",(e)=>{
 
  e.stopPropagation();
+
+ if(longPressTriggered){
+  longPressTriggered=false;
+  return;
+ }
 
  hiddenTime=!hiddenTime;
 
@@ -617,7 +592,8 @@ eye.onclick=function(e){
  updateTimeDisplay();
  fitTime();
  enterFullscreen();
-};
+
+});
 
 /* تشغيل الصوت */
 
@@ -700,105 +676,20 @@ function restart(){
  enterFullscreen();
 }
 
-/* السحب لفتح التلاعب */
-
-let startX=0;
-let startY=0;
-
-document.addEventListener("touchstart",(e)=>{
-
- if(e.target.closest("#panel") ||
-    e.target.closest("#passwordScreen"))return;
-
- startX=e.touches[0].clientX;
- startY=e.touches[0].clientY;
-
-});
-
-document.addEventListener("touchend",(e)=>{
-
- if(e.target.closest("#panel") ||
-    e.target.closest("#passwordScreen"))return;
-
- let endX=e.changedTouches[0].clientX;
- let endY=e.changedTouches[0].clientY;
-
- let diffX=endX-startX;
- let diffY=endY-startY;
-
- if(window.innerHeight>window.innerWidth){
-
-  if(diffX>100 && Math.abs(diffX)>Math.abs(diffY)){
-   openSettings();
-  }
-
- }else{
-
-  if(diffY<-100 && Math.abs(diffY)>Math.abs(diffX)){
-   openSettings();
-  }
-
- }
-
-});
-
 /* فتح التلاعب */
 
 function openSettings(){
 
- controls.style.display="none";
-
- let unlocked=localStorage.getItem("settingsUnlocked")==="yes";
-
- if(unlocked){
-
-  panel.style.display="block";
-  resetKeypad();
-
- }else{
-
-  passwordScreen.style.display="block";
-  loginPass.value="";
-
-  setTimeout(()=>{
-   loginPass.focus();
-  },100);
-
- }
-
-}
-
-/* الباسورد */
-
-function checkPassword(){
-
- if(loginPass.value!==PASS){
-
-  showMsg("❌ الباسورد غلط يحب");
-  return;
- }
-
- localStorage.setItem("settingsUnlocked","yes");
-
- passwordScreen.style.display="none";
  panel.style.display="block";
-
  resetKeypad();
+ enterFullscreen();
+
 }
 
 /* زر خروج */
 
 function exitSettings(){
  panel.style.display="none";
-}
-
-/* قفل التلاعب */
-
-function lockSettings(){
-
- localStorage.removeItem("settingsUnlocked");
- panel.style.display="none";
-
 }
 
 /* لوحة الأرقام */
@@ -874,12 +765,11 @@ function applyEdit(){
  showMsg("✅ تم");
 }
 
-/* الضغط العادي على الشاشة + Fullscreen */
+/* الضغط على الشاشة + Fullscreen */
 
 document.addEventListener("click",function(e){
 
- if(e.target.closest("#panel") ||
-    e.target.closest("#passwordScreen"))return;
+ if(e.target.closest("#panel"))return;
 
  if(e.target.closest(".btn")){
 
